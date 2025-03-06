@@ -18,4 +18,6 @@ public partial class PromotionDetail
     public int? CustomerId { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

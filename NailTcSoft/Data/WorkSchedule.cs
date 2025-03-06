@@ -16,4 +16,6 @@ public partial class WorkSchedule
     public bool IsDone { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

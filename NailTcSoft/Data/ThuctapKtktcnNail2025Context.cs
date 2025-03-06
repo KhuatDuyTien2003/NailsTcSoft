@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 
 namespace NailTcSoft.Data;
 
-public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
+public partial class ThuctapKtktcnNail2025Context : DbContext
 {
     public ThuctapKtktcnNail2025Context()
     {
@@ -16,6 +14,18 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
         : base(options)
     {
     }
+
+    public virtual DbSet<AspNetRole> AspNetRoles { get; set; }
+
+    public virtual DbSet<AspNetRoleClaim> AspNetRoleClaims { get; set; }
+
+    public virtual DbSet<AspNetUser> AspNetUsers { get; set; }
+
+    public virtual DbSet<AspNetUserClaim> AspNetUserClaims { get; set; }
+
+    public virtual DbSet<AspNetUserLogin> AspNetUserLogins { get; set; }
+
+    public virtual DbSet<AspNetUserToken> AspNetUserTokens { get; set; }
 
     public virtual DbSet<Bill> Bills { get; set; }
 
@@ -61,21 +71,76 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=thuctap.tcsoft.vn,1444;Initial Catalog=thuctap_ktktcn_nail_2025;User ID=user_thuctap_ktktcn_nail_2025;Password=mKm3IYhD7Jt4;Trust Server Certificate=True");
+        => optionsBuilder.UseSqlServer("Data Source=thuctap.tcsoft.vn,1444;Initial Catalog=thuctap_ktktcn_nail_2025;User ID=user_thuctap_ktktcn_nail_2025;Password=mKm3IYhD7Jt4;Encrypt=True;Trust Server Certificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder); // Gọi trước để Identity tự cấu hình
+        modelBuilder.Entity<AspNetRole>(entity =>
+        {
+            entity.HasIndex(e => e.NormalizedName, "RoleNameIndex")
+                .IsUnique()
+                .HasFilter("([NormalizedName] IS NOT NULL)");
 
-        // Thiết lập khóa chính phức hợp cho các bảng Identity
-        modelBuilder.Entity<IdentityUserLogin<string>>()
-            .HasKey(l => new { l.LoginProvider, l.ProviderKey });
+            entity.Property(e => e.Name).HasMaxLength(256);
+            entity.Property(e => e.NormalizedName).HasMaxLength(256);
+        });
 
-        modelBuilder.Entity<IdentityUserRole<string>>()
-            .HasKey(r => new { r.UserId, r.RoleId });
+        modelBuilder.Entity<AspNetRoleClaim>(entity =>
+        {
+            entity.HasIndex(e => e.RoleId, "IX_AspNetRoleClaims_RoleId");
 
-        modelBuilder.Entity<IdentityUserToken<string>>()
-            .HasKey(t => new { t.UserId, t.LoginProvider, t.Name });
+            entity.HasOne(d => d.Role).WithMany(p => p.AspNetRoleClaims).HasForeignKey(d => d.RoleId);
+        });
+
+        modelBuilder.Entity<AspNetUser>(entity =>
+        {
+            entity.HasIndex(e => e.NormalizedEmail, "EmailIndex");
+
+            entity.HasIndex(e => e.NormalizedUserName, "UserNameIndex")
+                .IsUnique()
+                .HasFilter("([NormalizedUserName] IS NOT NULL)");
+
+            entity.Property(e => e.Email).HasMaxLength(256);
+            entity.Property(e => e.NormalizedEmail).HasMaxLength(256);
+            entity.Property(e => e.NormalizedUserName).HasMaxLength(256);
+            entity.Property(e => e.UserName).HasMaxLength(256);
+
+            entity.HasMany(d => d.Roles).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "AspNetUserRole",
+                    r => r.HasOne<AspNetRole>().WithMany().HasForeignKey("RoleId"),
+                    l => l.HasOne<AspNetUser>().WithMany().HasForeignKey("UserId"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "RoleId");
+                        j.ToTable("AspNetUserRoles");
+                        j.HasIndex(new[] { "RoleId" }, "IX_AspNetUserRoles_RoleId");
+                    });
+        });
+
+        modelBuilder.Entity<AspNetUserClaim>(entity =>
+        {
+            entity.HasIndex(e => e.UserId, "IX_AspNetUserClaims_UserId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserClaims).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUserLogin>(entity =>
+        {
+            entity.HasKey(e => new { e.LoginProvider, e.ProviderKey });
+
+            entity.HasIndex(e => e.UserId, "IX_AspNetUserLogins_UserId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserLogins).HasForeignKey(d => d.UserId);
+        });
+
+        modelBuilder.Entity<AspNetUserToken>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.LoginProvider, e.Name });
+
+            entity.HasOne(d => d.User).WithMany(p => p.AspNetUserTokens).HasForeignKey(d => d.UserId);
+        });
+
         modelBuilder.Entity<Bill>(entity =>
         {
             entity.HasKey(e => e.BillId).HasName("PK__Bill__6D903F0377A66880");
@@ -87,6 +152,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
                 .HasColumnType("datetime")
                 .HasColumnName("billDate");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.MoneyPoint)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("moneyPoint");
@@ -108,6 +174,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.BillId).HasColumnName("billId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.ProAndSerId).HasColumnName("proAndSerId");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
             entity.Property(e => e.StaffId).HasColumnName("staffId");
@@ -141,6 +208,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.CategoryName)
                 .HasMaxLength(100)
                 .HasColumnName("categoryName");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Status).HasColumnName("status");
         });
 
@@ -151,6 +219,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.ToTable("ComboDetail");
 
             entity.Property(e => e.ComboId).HasColumnName("comboId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.ServiceId).HasColumnName("serviceId");
             entity.Property(e => e.Status).HasColumnName("status");
         });
@@ -163,6 +232,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.PaymentId).HasColumnName("paymentId");
             entity.Property(e => e.AccountantId).HasColumnName("accountantId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.PaymentDate).HasColumnName("paymentDate");
             entity.Property(e => e.StaffId).HasColumnName("staffId");
             entity.Property(e => e.Status).HasColumnName("status");
@@ -183,7 +253,11 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.CustomerName)
                 .HasMaxLength(100)
                 .HasColumnName("customerName");
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .HasColumnName("email");
             entity.Property(e => e.Gender).HasColumnName("gender");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.NumberPhone)
                 .HasMaxLength(10)
                 .IsUnicode(false)
@@ -213,6 +287,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.RankId).HasColumnName("rankId");
             entity.Property(e => e.DiscountRate).HasColumnName("discountRate");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.RankName)
                 .HasMaxLength(100)
                 .HasColumnName("rankName");
@@ -233,6 +308,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
                 .HasColumnType("text")
                 .HasColumnName("comment");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.ProAndSerId).HasColumnName("proAndSerId");
             entity.Property(e => e.StaffId).HasColumnName("staffId");
             entity.Property(e => e.Star).HasColumnName("star");
@@ -250,6 +326,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.ImportDate)
                 .HasColumnType("datetime")
                 .HasColumnName("importDate");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.TotalMoney)
                 .HasColumnType("decimal(18, 2)")
@@ -266,6 +343,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.ImportPrice)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("importPrice");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.ProductId).HasColumnName("productId");
             entity.Property(e => e.ReceiptId).HasColumnName("receiptId");
             entity.Property(e => e.Status).HasColumnName("status");
@@ -282,6 +360,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.FeedbackId).HasColumnName("feedbackId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.UrlImage)
                 .IsUnicode(false)
@@ -296,6 +375,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.PriceListId).HasColumnName("priceListId");
             entity.Property(e => e.EndTime).HasColumnName("endTime");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.PriceListName)
                 .HasMaxLength(100)
                 .HasColumnName("priceListName");
@@ -332,6 +412,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.ProAndSerId).HasColumnName("proAndSerId");
             entity.Property(e => e.Commission).HasColumnName("commission");
             entity.Property(e => e.InventoryQuantity).HasColumnName("inventoryQuantity");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.OriginalPrice)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("originalPrice");
@@ -344,7 +425,9 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.ProAndSerType).HasColumnName("proAndSerType");
             entity.Property(e => e.ProductTypeId).HasColumnName("productTypeId");
             entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.Unit).HasColumnName("unit");
+            entity.Property(e => e.Unit)
+                .HasMaxLength(50)
+                .HasColumnName("unit");
             entity.Property(e => e.UrlImage)
                 .IsUnicode(false)
                 .HasColumnName("urlImage");
@@ -376,6 +459,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("condition");
             entity.Property(e => e.EndDate).HasColumnName("endDate");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IsPoints).HasColumnName("isPoints");
             entity.Property(e => e.ProductTypeId).HasColumnName("productTypeId");
             entity.Property(e => e.PromotionName).HasColumnName("promotionName");
@@ -399,6 +483,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IsUsed).HasColumnName("isUsed");
             entity.Property(e => e.PromotionCode)
                 .HasMaxLength(10)
@@ -416,6 +501,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
             entity.Property(e => e.StaffId).HasColumnName("staffId");
             entity.Property(e => e.Birthday).HasColumnName("birthday");
             entity.Property(e => e.Gender).HasColumnName("gender");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.JoinDate).HasColumnName("joinDate");
             entity.Property(e => e.NumberPhone)
                 .HasMaxLength(10)
@@ -454,6 +540,7 @@ public partial class ThuctapKtktcnNail2025Context :IdentityDbContext<Account>
 
             entity.Property(e => e.WorkScheduleId).HasColumnName("workScheduleId");
             entity.Property(e => e.CustomerId).HasColumnName("customerId");
+            entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.IsDone).HasColumnName("isDone");
             entity.Property(e => e.Shift).HasColumnName("shift");
             entity.Property(e => e.StaffId).HasColumnName("staffId");

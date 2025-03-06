@@ -11,7 +11,9 @@ public partial class GoodsReceipt
 
     public decimal? TotalMoney { get; set; }
 
-    public int? AccountantId { get; set; }
+    public int AccountantId { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

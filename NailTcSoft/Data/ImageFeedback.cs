@@ -9,7 +9,9 @@ public partial class ImageFeedback
 
     public int FeedbackId { get; set; }
 
-    public string UrlImage { get; set; } = null!;
+    public string? UrlImage { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

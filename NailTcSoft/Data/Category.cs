@@ -10,4 +10,6 @@ public partial class Category
     public string CategoryName { get; set; } = null!;
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

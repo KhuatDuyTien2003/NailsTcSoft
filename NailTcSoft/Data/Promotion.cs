@@ -28,4 +28,6 @@ public partial class Promotion
     public string? UrlImage { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

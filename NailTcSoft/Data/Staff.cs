@@ -24,4 +24,6 @@ public partial class Staff
     public DateOnly? JoinDate { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

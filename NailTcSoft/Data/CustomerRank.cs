@@ -14,4 +14,6 @@ public partial class CustomerRank
     public decimal TotalMoney { get; set; }
 
     public bool Status { get; set; }
+
+    public bool? IsDeleted { get; set; }
 }

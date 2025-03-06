@@ -7,9 +7,9 @@ public partial class ProductAndService
 {
     public int ProAndSerId { get; set; }
 
-    public string ProAndSerName { get; set; } = null!;
+    public string ProAndSerCode { get; set; } = null!;
 
-    public string? ProAndSerCode { get; set; }
+    public string ProAndSerName { get; set; } = null!;
 
     public TimeOnly? WorkTime { get; set; }
 
@@ -17,7 +17,7 @@ public partial class ProductAndService
 
     public decimal? OriginalPrice { get; set; }
 
-    public int? Unit { get; set; }
+    public string? Unit { get; set; }
 
     public string? UrlImage { get; set; }
 
@@ -28,4 +28,6 @@ public partial class ProductAndService
     public byte ProAndSerType { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

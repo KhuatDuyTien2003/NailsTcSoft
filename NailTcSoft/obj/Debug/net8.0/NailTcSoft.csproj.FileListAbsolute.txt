@@ -174,3 +174,4 @@ D:\CODE\.NET\web\NailTcSoft\NailTcSoft\obj\Debug\net8.0\refint\NailTcSoft.dll
 D:\CODE\.NET\web\NailTcSoft\NailTcSoft\obj\Debug\net8.0\NailTcSoft.pdb
 D:\CODE\.NET\web\NailTcSoft\NailTcSoft\obj\Debug\net8.0\NailTcSoft.genruntimeconfig.cache
 D:\CODE\.NET\web\NailTcSoft\NailTcSoft\obj\Debug\net8.0\ref\NailTcSoft.dll
+D:\CODE\.NET\web\NailTcSoft\NailTcSoft\obj\Debug\net8.0\NailTcSoft.sourcelink.json

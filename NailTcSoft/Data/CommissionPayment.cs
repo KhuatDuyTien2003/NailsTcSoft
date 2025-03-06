@@ -18,4 +18,6 @@ public partial class CommissionPayment
     public int AccountantId { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

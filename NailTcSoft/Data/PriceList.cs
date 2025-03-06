@@ -13,11 +13,13 @@ public partial class PriceList
 
     public bool PriceListType { get; set; }
 
-    public int? RankId { get; set; }
+    public int RankId { get; set; }
 
-    public DateOnly? StartTime { get; set; }
+    public DateOnly StartTime { get; set; }
 
-    public DateOnly? EndTime { get; set; }
+    public DateOnly EndTime { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

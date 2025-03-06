@@ -24,4 +24,6 @@ public partial class Bill
     public bool PaymentId { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }

@@ -9,7 +9,7 @@ public partial class Customer
 
     public string CustomerName { get; set; } = null!;
 
-    public int Gender { get; set; }
+    public int? Gender { get; set; }
 
     public string? NumberPhone { get; set; }
 
@@ -28,4 +28,8 @@ public partial class Customer
     public int? TotalPoints { get; set; }
 
     public bool Status { get; set; }
+
+    public string Email { get; set; } = null!;
+
+    public bool? IsDeleted { get; set; }
 }

@@ -18,4 +18,6 @@ public partial class Feedback
     public string? Comment { get; set; }
 
     public bool Status { get; set; }
+
+    public bool IsDeleted { get; set; }
 }
